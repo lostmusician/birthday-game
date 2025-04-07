@@ -55,7 +55,10 @@ function resetGame() {
 }
 
 // Call the reset function when the page is loaded
-window.onload = resetGame;
+window.onload = () => {
+  resetGame();
+  update();
+};
 
 document.addEventListener('keydown', e => keys[e.key] = true);
 document.addEventListener('keyup', e => keys[e.key] = false);
