@@ -98,6 +98,7 @@ function distance(a, b) {
 }
 
 function update() {
+  console.log('Update function called');
   // Handle movement
   if (!hugging) {
     if (keys['ArrowUp'])    { girl.y -= 2; girl.row = 0; }
