@@ -32,33 +32,43 @@ let tick = 0;
 
 const spriteSheet = new Image();
 spriteSheet.src = 'sprite-sheet.png';
-spriteSheet.onload = () => console.log('Sprite sheet loaded');
-spriteSheet.onerror = () => console.error('Error loading sprite sheet');
 
-const girl = { x: 100, y: 100, row: 0, hugging: false };
-const you = { x: 400, y: 300, row: 3, hugging: false };
+let girl = { x: 100, y: 100, row: 0, hugging: false };
+let you = { x: 400, y: 300, row: 3, hugging: false };
 const chest = { x: 650, y: 100 };
 const keys = {};
 
 let hugging = false;
 let memoryRevealed = false;
 
+// Reset game function
+function resetGame() {
+  hugging = false;
+  memoryRevealed = false;
+  girl.x = 100;
+  girl.y = 100;
+  girl.row = 0;
+  you.x = 400;
+  you.y = 300;
+  you.row = 3;
+  dialogueBox.style.display = 'none';
+}
+
+// Call the reset function when the page is loaded
+window.onload = resetGame;
+
 document.addEventListener('keydown', e => keys[e.key] = true);
 document.addEventListener('keyup', e => keys[e.key] = false);
 
 function drawSprite(character, label) {
-  try {
-    const sx = frame * SPRITE_SIZE;
-    const sy = character.row * SPRITE_SIZE;
+  const sx = frame * SPRITE_SIZE;
+  const sy = character.row * SPRITE_SIZE;
 
-    ctx.drawImage(spriteSheet, sx, sy, SPRITE_SIZE, SPRITE_SIZE,
-      character.x, character.y, SPRITE_SIZE * SCALE, SPRITE_SIZE * SCALE);
+  ctx.drawImage(spriteSheet, sx, sy, SPRITE_SIZE, SPRITE_SIZE,
+    character.x, character.y, SPRITE_SIZE * SCALE, SPRITE_SIZE * SCALE);
 
-    ctx.fillStyle = 'black';
-    ctx.fillText(label, character.x, character.y - 10);
-  } catch (error) {
-    console.error('Error drawing sprite:', error);
-  }
+  ctx.fillStyle = 'black';
+  ctx.fillText(label, character.x, character.y - 10);
 }
 
 function drawChest() {
@@ -73,27 +83,49 @@ function distance(a, b) {
 }
 
 function update() {
-  try {
-    // Handle movement
-    if (!hugging) {
-      if (keys['ArrowUp'])    { girl.y -= 2; girl.row = 0; }
-      if (keys['ArrowDown'])  { girl.y += 2; girl.row = 0; }
-      if (keys['ArrowLeft'])  { girl.x -= 2; girl.row = 1; }
-      if (keys['ArrowRight']) { girl.x += 2; girl.row = 1; }
-    }
+  // Handle movement
+  if (!hugging) {
+    if (keys['ArrowUp'])    { girl.y -= 2; girl.row = 0; }
+    if (keys['ArrowDown'])  { girl.y += 2; girl.row = 0; }
+    if (keys['ArrowLeft'])  { girl.x -= 2; girl.row = 1; }
+    if (keys['ArrowRight']) { girl.x += 2; girl.row = 1; }
+  }
 
-    // Handle sprite frame animation
-    tick++;
-    if (tick % 10 === 0) {
-      frame = (frame + 1) % FRAME_COUNT;
-    }
+  // Handle sprite frame animation
+  tick++;
+  if (tick % 10 === 0) {
+    frame = (frame + 1) % FRAME_COUNT;
+  }
 
-    // Draw
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawSprite(girl, "You ");
-    drawSprite(you, "Me ");
-    drawChest();
+  // Draw
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawSprite(girl, "You ");
+  drawSprite(you, "Me ");
+  drawChest();
 
-    // Hug Trigger
-    if (distance(girl, you) < 50 && !hugging) {
-      hugging =
+  // Hug Trigger
+  if (distance(girl, you) < 50 && !hugging) {
+    hugging = true;
+    frame = 0;
+    girl.row = 2; // Girl hug row
+    you.row = 2;  // Buddy hug row
+    dialogueBox.innerText = " A warm hug! Happy birthday my love!";
+    dialogueBox.style.display = 'block';
+  }
+
+  // Treasure box trigger
+  if (distance(girl, chest) < 50 && !memoryRevealed) {
+    memoryRevealed = true;
+    dialogueBox.innerText = " Memory Unlocked: Remember our beach sunset? ";
+    dialogueBox.style.display = 'block';
+  }
+
+  requestAnimationFrame(update);
+}
+
+spriteSheet.onload = () => {
+  update();
+};
+</script>
+</body>
+</html>
