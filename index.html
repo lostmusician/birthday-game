@@ -6,7 +6,13 @@
   <style>
     body { margin: 0; background: #d0f4f7; font-family: sans-serif; }
     canvas { display: block; margin: 0 auto; background: #a2d5c6; }
-    #dialogue { text-align: center; padding: 10px; font-size: 18px; background: #fff8dc; display: none; }
+    #dialogue {
+      text-align: center;
+      padding: 10px;
+      font-size: 18px;
+      background: #fff8dc;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -16,30 +22,42 @@
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
-const player = { x: 100, y: 100, color: 'pink' }; // girlfriend
-const buddy = { x: 400, y: 300, color: 'blue' };  // you
-const chest = { x: 600, y: 100 };
-let showDialogue = false;
-let memoryRevealed = false;
-
 const dialogueBox = document.getElementById('dialogue');
 
-// Handle movement
+const SPRITE_SIZE = 32;
+const SCALE = 2;
+const FRAME_COUNT = 4;
+let frame = 0;
+let tick = 0;
+
+const spriteSheet = new Image();
+spriteSheet.src = 'sprite-sheet.png';
+
+const girl = { x: 100, y: 100, row: 0, hugging: false };
+const you = { x: 400, y: 300, row: 3, hugging: false };
+const chest = { x: 650, y: 100 };
 const keys = {};
+
+let hugging = false;
+let memoryRevealed = false;
+
 document.addEventListener('keydown', e => keys[e.key] = true);
 document.addEventListener('keyup', e => keys[e.key] = false);
 
-function drawCharacter(char, label) {
-  ctx.fillStyle = char.color;
-  ctx.fillRect(char.x, char.y, 40, 40);
+function drawSprite(character, label) {
+  const sx = frame * SPRITE_SIZE;
+  const sy = character.row * SPRITE_SIZE;
+
+  ctx.drawImage(spriteSheet, sx, sy, SPRITE_SIZE, SPRITE_SIZE,
+    character.x, character.y, SPRITE_SIZE * SCALE, SPRITE_SIZE * SCALE);
+
   ctx.fillStyle = 'black';
-  ctx.fillText(label, char.x, char.y - 10);
+  ctx.fillText(label, character.x, character.y - 10);
 }
 
 function drawChest() {
   ctx.fillStyle = 'gold';
-  ctx.fillRect(chest.x, chest.y, 50, 30);
+  ctx.fillRect(chest.x, chest.y, 40, 30);
   ctx.fillStyle = 'black';
   ctx.fillText("🎁", chest.x + 10, chest.y + 20);
 }
@@ -49,26 +67,40 @@ function distance(a, b) {
 }
 
 function update() {
-  if (keys['ArrowUp']) player.y -= 3;
-  if (keys['ArrowDown']) player.y += 3;
-  if (keys['ArrowLeft']) player.x -= 3;
-  if (keys['ArrowRight']) player.x += 3;
+  // Handle movement
+  if (!hugging) {
+    if (keys['ArrowUp'])    { girl.y -= 2; girl.row = 0; }
+    if (keys['ArrowDown'])  { girl.y += 2; girl.row = 0; }
+    if (keys['ArrowLeft'])  { girl.x -= 2; girl.row = 1; }
+    if (keys['ArrowRight']) { girl.x += 2; girl.row = 1; }
+  }
 
+  // Handle sprite frame animation
+  tick++;
+  if (tick % 10 === 0) {
+    frame = (frame + 1) % FRAME_COUNT;
+  }
+
+  // Draw
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  drawCharacter(player, "You 💖");
-  drawCharacter(buddy, "Me 😊");
+  drawSprite(girl, "You 💚");
+  drawSprite(you, "Me 😊");
   drawChest();
 
-  if (distance(player, buddy) < 60 && !showDialogue) {
-    showDialogue = true;
-    dialogueBox.innerText = "Hey love! I'm so happy you're here 🌟";
+  // Hug Trigger
+  if (distance(girl, you) < 50 && !hugging) {
+    hugging = true;
+    frame = 0;
+    girl.row = 2; // Girl hug row
+    you.row = 5;  // Buddy hug row
+    dialogueBox.innerText = "🤗 A warm hug! Happy birthday my love!";
     dialogueBox.style.display = 'block';
   }
 
-  if (distance(player, chest) < 60 && !memoryRevealed) {
+  // Treasure box trigger
+  if (distance(girl, chest) < 50 && !memoryRevealed) {
     memoryRevealed = true;
-    dialogueBox.innerText = "🎉 Memory Unlocked: Remember our picnic at the park with that surprise cake? 🍰";
+    dialogueBox.innerText = "🎁 Memory Unlocked: Remember our beach sunset? 🌅💛";
     dialogueBox.style.display = 'block';
   }
 
