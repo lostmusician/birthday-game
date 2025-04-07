@@ -33,8 +33,20 @@ let tick = 0;
 const spriteSheet = new Image();
 spriteSheet.src = 'sprite-sheet.png';
 
-spriteSheet.onload = () => console.log('Sprite sheet loaded');
-spriteSheet.onerror = () => console.error('Error loading sprite sheet');
+spriteSheet.onload = () => {
+  console.log('Sprite sheet loaded');
+  resetGame();
+  update();
+};
+
+spriteSheet.onerror = () => {
+  console.error('Error loading sprite sheet');
+  ctx.fillStyle = 'black';
+  ctx.font = '24px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Error loading sprite sheet', canvas.width / 2, canvas.height / 2);
+};
 
 let girl = { x: 100, y: 100, row: 0, hugging: false };
 let you = { x: 400, y: 300, row: 3, hugging: false };
@@ -44,7 +56,6 @@ const keys = {};
 let hugging = false;
 let memoryRevealed = false;
 
-// Reset game function
 function resetGame() {
   hugging = false;
   memoryRevealed = false;
@@ -57,24 +68,22 @@ function resetGame() {
   dialogueBox.style.display = 'none';
 }
 
-// Call the reset function when the page is loaded
-window.onload = () => {
-  resetGame();
-  update();
-};
-
 document.addEventListener('keydown', e => keys[e.key] = true);
 document.addEventListener('keyup', e => keys[e.key] = false);
 
 function drawSprite(character, label) {
-  const sx = frame * SPRITE_SIZE;
-  const sy = character.row * SPRITE_SIZE;
+  try {
+    const sx = frame * SPRITE_SIZE;
+    const sy = character.row * SPRITE_SIZE;
 
-  ctx.drawImage(spriteSheet, sx, sy, SPRITE_SIZE, SPRITE_SIZE,
-    character.x, character.y, SPRITE_SIZE * SCALE, SPRITE_SIZE * SCALE);
+    ctx.drawImage(spriteSheet, sx, sy, SPRITE_SIZE, SPRITE_SIZE,
+      character.x, character.y, SPRITE_SIZE * SCALE, SPRITE_SIZE * SCALE);
 
-  ctx.fillStyle = 'black';
-  ctx.fillText(label, character.x, character.y - 10);
+    ctx.fillStyle = 'black';
+    ctx.fillText(label, character.x, character.y - 10);
+  } catch (error) {
+    console.error('Error drawing sprite:', error);
+  }
 }
 
 function drawChest() {
