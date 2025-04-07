@@ -33,6 +33,9 @@ let tick = 0;
 const spriteSheet = new Image();
 spriteSheet.src = 'sprite-sheet.png';
 
+spriteSheet.onload = () => console.log('Sprite sheet loaded');
+spriteSheet.onerror = () => console.error('Error loading sprite sheet');
+
 let girl = { x: 100, y: 100, row: 0, hugging: false };
 let you = { x: 400, y: 300, row: 3, hugging: false };
 const chest = { x: 650, y: 100 };
